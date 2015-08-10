@@ -20,7 +20,14 @@ package fpinscala.datastructures {
     def apply[A](as: A*): List[A] =
       if (as.isEmpty) Nil
       else Cons(as.head, apply(as.tail: _*))
+
+    def foldRight[A, B](as: List[A], z: B)(f: (A, B) => B): B =
+      as match {
+        case Nil => z
+        case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+      }
   }
+
 }
 
 import fpinscala.datastructures._
@@ -85,4 +92,51 @@ object ex_3_6 {
 
     go(l)
   }
+}
+
+object ex_3_7 {
+  // foldRight can't early return as defined.
+  // Because of association and argument evaluation,
+  // it traverses entire list before looking at any element.
+}
+
+object ex_3_8 {
+  // foldRight is pretty similar to Cons itself.
+  List.foldRight(List(1, 2, 3), Nil: List[Int])(Cons(_, _))
+}
+
+object ex_3_9 {
+  def length[A](as: List[A]): Int =
+    List.foldRight(as, 0)((_, n) => n + 1)
+}
+
+object ex_3_10 {
+  @scala.annotation.tailrec
+  def foldLeft[A, B](as: List[A], z: B)(f: (B, A) => B): B =
+    as match {
+      case Nil => z
+      case Cons(x, xs) => foldLeft(xs, f(z, x))(f)
+    }
+}
+
+object ex_3_11 {
+  import ex_3_10._
+
+  def sum(xs: List[Int]): Int =
+    foldLeft(xs, 0)(_ + _)
+
+  def product(xs: List[Int]): Int =
+    foldLeft(xs, 1)(_ * _)
+
+  def length[A](xs: List[A]): Int =
+    foldLeft(xs, 0)((a, b) => a + 1)
+}
+
+object ex_3_12 {
+  import ex_3_10._
+
+  def reverse[A](as: List[A]): List[A] =
+    foldLeft(as, Nil: List[A]) {
+      case (accum, x) => Cons(x, accum)
+    }
 }
