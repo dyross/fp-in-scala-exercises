@@ -140,3 +140,29 @@ object ex_3_12 {
       case (accum, x) => Cons(x, accum)
     }
 }
+
+object ex_3_13 {
+  import ex_3_10._
+  import ex_3_12._
+
+  def foldLeft1[A, B](as: List[A], z: B)(f: (B, A) => B): B =
+    List.foldRight(as, z)((b, a) => f(a, b))
+
+  def foldRight1[A, B](as: List[A], z: B)(f: (A, B) => B): B =
+    foldLeft(reverse(as), z)((b: B, a: A) => f(a, b))
+}
+
+object ex_3_14 {
+
+  def append[A](l: List[A], r: List[A]): List[A] =
+    List.foldRight(l, r)(Cons(_, _))
+}
+
+object ex_3_15 {
+  import ex_3_10._
+  import ex_3_14._
+
+  def concatenateLists[A](l: List[List[A]]): List[A] = {
+    List.foldRight(l, Nil: List[A])(append)
+  }
+}
