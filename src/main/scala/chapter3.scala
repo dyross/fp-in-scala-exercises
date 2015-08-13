@@ -270,3 +270,29 @@ object ex_3_23 {
     go(la, lb)
   }
 }
+
+object ex_3_24 {
+
+  def hasSubsequence[A](l: List[A], sub: List[A]): Boolean = {
+
+    @scala.annotation.tailrec
+    def startsWithSubsequence(l: List[A], sub: List[A]): Boolean = (l, sub) match {
+      case (Cons(h1, t1), Cons(h2, t2)) =>
+        if (h1 != h2) false
+        else startsWithSubsequence(t1, t2)
+      case (_, Nil) => true
+      case (Nil, _) => false
+    }
+
+    @scala.annotation.tailrec
+    def go(l: List[A]): Boolean = {
+      if (startsWithSubsequence(l, sub)) true
+      else l match {
+        case Cons(_, t) => go(t)
+        case Nil => false
+      }
+    }
+
+    go(l)
+  }
+}
