@@ -166,3 +166,107 @@ object ex_3_15 {
     List.foldRight(l, Nil: List[A])(append)
   }
 }
+
+object ex_3_16 {
+  def addOne(l: List[Int]): List[Int] = {
+    List.foldRight(l, Nil: List[Int])((h, t) => Cons(h + 1, t))
+  }
+}
+
+object ex_3_17 {
+  def doubleToString(l: List[Double]): List[String] = {
+    List.foldRight(l, Nil: List[String])((h, t) => Cons(h.toString, t))
+  }
+}
+
+object ex_3_18 {
+  def map[A, B](l: List[A])(f: A => B): List[B] = {
+    val buf = scala.collection.mutable.ListBuffer.empty[B]
+
+    @scala.annotation.tailrec
+    def go(l: List[A]): List[B] = l match {
+      case Cons(h, t) =>
+        buf += f(h)
+        go(t)
+      case Nil => List(buf: _*)
+    }
+
+    go(l)
+  }
+}
+
+object ex_3_19 {
+  def filter[A](l: List[A])(p: A => Boolean): List[A] = {
+    val buf = scala.collection.mutable.ListBuffer.empty[A]
+
+    @scala.annotation.tailrec
+    def go(l: List[A]): List[A] = l match {
+      case Cons(h, t) =>
+        if (p(h))
+          buf += h
+        go(t)
+      case Nil => List(buf: _*)
+    }
+
+    go(l)
+  }
+
+  filter(List(1, 2, 3, 4))(_ % 2 == 0)
+}
+
+object ex_3_20 {
+  import ex_3_15._
+  import ex_3_18._
+  def flatMap[A, B](l: List[A])(f: A => List[B]): List[B] = {
+    concatenateLists(map(l)(f))
+  }
+}
+
+object ex_3_21 {
+  import ex_3_20._
+
+  def filterViaFlatMap[A](l: List[A])(f: A => Boolean): List[A] = {
+    flatMap(l) { h =>
+      if (f(h))
+        List(h)
+      else
+        Nil
+    }
+  }
+}
+
+object ex_3_22 {
+
+  def addLists(l1: List[Int], l2: List[Int]): List[Int] = {
+    val buf = scala.collection.mutable.ListBuffer.empty[Int]
+
+    @scala.annotation.tailrec
+    def go(l1: List[Int], l2: List[Int]): List[Int] = (l1, l2) match {
+      case (Cons(h1, t1), Cons(h2, t2)) =>
+        buf += h1 + h2
+        go(t1, t2)
+      case (Nil, Nil) => List(buf: _*)
+      case _ => sys.error("Different sized lists")
+    }
+
+    go(l1, l1)
+
+  }
+}
+
+object ex_3_23 {
+  def zipWith[A, B, C](la: List[A], lb: List[B])(f: (A, B) => C): List[C] = {
+    val buf = scala.collection.mutable.ListBuffer.empty[C]
+
+    @scala.annotation.tailrec
+    def go(la: List[A], lb: List[B]): List[C] = (la, lb) match {
+      case (Cons(h1, t1), Cons(h2, t2)) =>
+        buf += f(h1, h2)
+        go(t1, t2)
+      case (Nil, Nil) => List(buf: _*)
+      case _ => sys.error("Different sized lists")
+    }
+
+    go(la, lb)
+  }
+}
