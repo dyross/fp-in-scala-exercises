@@ -28,6 +28,10 @@ package fpinscala.datastructures {
       }
   }
 
+  sealed trait Tree[+A]
+  case class Leaf[A](value: A) extends Tree[A]
+  case class Branch[A](left: Tree[A], right: Tree[A]) extends Tree[A]
+
 }
 
 import fpinscala.datastructures._
@@ -294,5 +298,82 @@ object ex_3_24 {
     }
 
     go(l)
+  }
+}
+
+object ex_3_25 {
+
+  def countNodes[A](tree: Tree[A]): Int = {
+    @scala.annotation.tailrec
+    def go(node: Tree[A], count: Int, remaining: List[Tree[A]]): Int = {
+      node match {
+        case Leaf(_) => remaining match {
+          case Nil => count + 1
+          case Cons(h, t) => go(h, count + 1, t)
+        }
+
+        case Branch(left, right) => go(left, count + 1, Cons(right, remaining))
+      }
+    }
+    go(tree, 0, Nil)
+  }
+}
+
+object ex_3_26 {
+
+  def maximum(tree: Tree[Int]): Int = {
+    @scala.annotation.tailrec
+    def go(node: Tree[Int], curMax: Int, remaining: List[Tree[Int]]): Int = {
+      node match {
+        case Leaf(value) =>
+          val newMax = curMax max value
+          remaining match {
+            case Nil => newMax
+            case Cons(h, t) => go(h, newMax, t)
+          }
+
+        case Branch(left, right) => go(left, curMax, Cons(right, remaining))
+      }
+    }
+    go(tree, 0, Nil)
+  }
+}
+
+object ex_3_27 {
+  def depth[A](tree: Tree[A]): Int = tree match {
+    case Leaf(_) => 0
+    case Branch(left, right) => 1 + (depth(left) max depth(right))
+  }
+}
+
+object ex_3_28 {
+
+  def map[A, B](tree: Tree[A])(f: A => B): Tree[B] = tree match {
+    case Leaf(value) => Leaf(f(value))
+    case Branch(left, right) => Branch(map(left)(f), map(right)(f))
+  }
+}
+
+object ex_3_29 {
+
+  def fold[A, B](tree: Tree[A])(f: A => B)(g: (B, B) => B): B = tree match {
+    case Leaf(value) => f(value)
+    case Branch(left, right) => g(fold(left)(f)(g), fold(right)(f)(g))
+  }
+
+  def sizeViaFold[A](tree: Tree[A]): Int = {
+    fold(tree)(a => 1)(1 + _ + _)
+  }
+
+  def maxViaFold(tree: Tree[Int]): Int = {
+    fold(tree)(a => a)(_ max _)
+  }
+
+  def depthViaFold[A](tree: Tree[A]): Int = {
+    fold(tree)(a => 0)((x, y) => 1 + (x max y))
+  }
+
+  def mapViaFold[A, B](tree: Tree[A])(f: A => B): Tree[B] = {
+    fold(tree)(a => Leaf(f(a)): Tree[B])(Branch(_, _))
   }
 }
