@@ -87,3 +87,56 @@ object ex_4_5 {
   def sequenceViaTraverse[A](a: List[Option[A]]): Option[List[A]] =
     traverse(a)(x => x)
 }
+
+object ex_4_6 {
+  sealed trait Either[+E, +A] {
+    def map[B](f: A => B): Either[E, B] = this match {
+      case Right(a) => Right(f(a))
+      case Left(e) => Left(e)
+    }
+    def flatMap[EE >: E, B](f: A => Either[EE, B]): Either[EE, B] = this match {
+      case Right(a) => f(a)
+      case Left(e) => Left(e)
+    }
+    def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B] = this match {
+      case Right(a) => Right(a)
+      case Left(_) => b
+    }
+    def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C] = {
+      for {
+        aa <- this
+        bb <- b
+      } yield f(aa, bb)
+    }
+  }
+  case class Left[+E](value: E) extends Either[E, Nothing]
+  case class Right[+A](value: A) extends Either[Nothing, A]
+}
+
+import ex_4_6._
+
+object ex_4_7 {
+
+  def traverse[E, A, B](as: List[A])(f: A => Either[E, B]): Either[E, List[B]] = {
+    @scala.annotation.tailrec
+    def go(as: List[A], accum: List[B]): Either[E, List[B]] = as match {
+      case Nil => Right(accum.reverse)
+      case a :: as => f(a) match {
+        case Right(b) => go(as, b :: accum)
+        case Left(e) => Left(e)
+      }
+    }
+    go(as, Nil)
+  }
+
+  def sequence[E, A](es: List[Either[E, A]]): Either[E, List[A]] = traverse(es)(x => x)
+
+}
+
+object ex_4_8 {
+  sealed trait NonEmptyList[+A]
+  case class SingleItem[+A](a: A) extends NonEmptyList[A]
+  case class Cons[+A](a: A, as: NonEmptyList[A]) extends NonEmptyList[A]
+
+  type EitherNel[E, A] = Either[NonEmptyList[E], A]
+}
